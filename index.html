@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>講師勤怠システム（本番）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>講師勤怠システム</h1>
+
+  <!-- 勤務地 -->
+  <div class="box">
+    <label for="place">勤務地</label>
+    <select id="place">
+      <option value="寺津(土)">寺津(土)</option>
+      <option value="寺津(水)">寺津(水)</option>
+      <option value="安城">安城</option>
+      <option value="お城下">お城下</option>
+      <option value="碧南">碧南</option>
+    </select>
+  </div>
+
+  <!-- 勤務日 -->
+  <div class="box">
+    <label for="date">勤務日</label>
+    <input type="date" id="date">
+  </div>
+
+  <!-- 勤務時間（1〜5コマ） -->
+  <div class="box">
+    <h2>勤務時間（1〜5コマ）</h2>
+
+    <!-- 1コマ目 -->
+    <div class="set">
+      <div class="set-title">【1コマ目】</div>
+
+      <label for="s1">出勤</label>
+      <div class="time-row">
+        <input type="time" id="s1" class="time-input">
+        <select id="s1-preset" class="time-preset">
+          <option value="">プリセット</option>
+          <option value="08:45">08:45</option>
+          <option value="09:15">09:15</option>
+          <option value="10:30">10:30</option>
+          <option value="11:00">11:00</option>
+          <option value="13:00">13:00</option>
+          <option value="13:30">13:30</option>
+          <option value="14:45">14:45</option>
+          <option value="15:15">15:15</option>
+          <option value="16:45">16:45</option>
+        </select>
+      </div>
+
+      <label for="e1">退勤</label>
+      <div class="time-row">
+        <input type="time" id="e1" class="time-input">
+        <select id="e1-preset" class="time-preset">
+          <option value="">プリセット</option>
+          <option value="10:15">10:15</option>
+          <option value="10:30">10:30</option>
+          <option value="12:00">12:00</option>
+          <option value="14:30">14:30</option>
+          <option value="16:15">16:15</option>
+          <option value="18:15">18:15</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 2コマ目 -->
+    <div class="set">
+      <div class="set-title">【2コマ目】</div>
+
+      <label for="s2">出勤</label>
+      <div class="time-row">
+        <input type="time" id="s2" class="time-input">
+        <select id="s2-preset" class="time-preset">
+          <option value="">プリセット</option>
+          <option value="08:45">08:45</option>
+          <option value="09:15">09:15</option>
+          <option value="10:30">10:30</option>
+          <option value="11:00">11:00</option>
+          <option value="13:00">13:00</option>
+          <option value="13:30">13:30</option>
+          <option value="14:45">14:45</option>
+          <option value="15:15">15:15</option>
+          <option value="16:45">16:45</option>
+        </select>
+      </div>
+
+      <label for="e2">退勤</label>
+      <div class="time-row">
+        <input type="time" id="e2" class="time-input">
+        <select id="e2-preset" class="time-preset">
+          <option value="">プリセット</option>
+          <option value="10:15">10:15</option>
+          <option value="10:30">10:30</option>
+          <option value="12:00">12:00</option>
+          <option value="14:30">14:30</option>
+          <option value="16:15">16:15</option>
+          <option value="18:15">18:15</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 3コマ目 -->
+    <div class="set">
+      <div class="set-title">【3コマ目】</div>
+
+      <label for="s3">出勤</label>
+      <div class="time-row">
+        <input type="time" id="s3" class="time-input">
+        <select id="s3-preset" class="time-preset">
+          <option value="">プリセット</option>
+          <option value="08:45">08:45</option>
+          <option value="09:15">09:15</option>
+          <option value="10:30">10:30</option>
+          <option value="11:00">11:00</option>
+          <option value="13:00">13:00</option>
+          <option value="13:30">13:30</option>
+          <option value="14:45">14:45</option>
+          <option value="15:15">15:15</option>
+          <option value="16:45">16:45</option>
+        </select>
+      </div>
+
+      <label for="e3">退勤</label>
+      <div class="time-row">
+        <input type="time" id="e3" class="time-input">
+        <select id="e3-preset" class="time-preset">
+          <option value="">プリセット</option>
+          <option value="10:15">10:15</option>
+          <option value="10:30">10:30</option>
+          <option value="12:00">12:00</option>
+          <option value="14:30">14:30</option>
+          <option value="16:15">16:15</option>
+          <option value="18:15">18:15</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 4コマ目 -->
+    <div class="set">
+      <div class="set-title">【4コマ目】</div>
+
+      <label for="s4">出勤</label>
+      <div class="time-row">
+        <input type="time" id="s4" class="time-input">
+        <select id="s4-preset" class="time-preset">
+          <option value="">プリセット</option>
+          <option value="08:45">08:45</option>
+          <option value="09:15">09:15</option>
+          <option value="10:30">10:30</option>
+          <option value="11:00">11:00</option>
+          <option value="13:00">13:00</option>
+          <option value="13:30">13:30</option>
+          <option value="14:45">14:45</option>
+          <option value="15:15">15:15</option>
+          <option value="16:45">16:45</option>
+        </select>
+      </div>
+
+      <label for="e4">退勤</label>
+      <div class="time-row">
+        <input type="time" id="e4" class="time-input">
+        <select id="e4-preset" class="time-preset">
+          <option value="">プリセット</option>
+          <option value="10:15">10:15</option>
+          <option value="10:30">10:30</option>
+          <option value="12:00">12:00</option>
+          <option value="14:30">14:30</option>
+          <option value="16:15">16:15</option>
+          <option value="18:15">18:15</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 5コマ目 -->
+    <div class="set">
+      <div class="set-title">【5コマ目】</div>
+
+      <label for="s5">出勤</label>
+      <div class="time-row">
+        <input type="time" id="s5" class="time-input">
+        <select id="s5-preset" class="time-preset">
+          <option value="">プリセット</option>
+          <option value="08:45">08:45</option>
+          <option value="09:15">09:15</option>
+          <option value="10:30">10:30</option>
+          <option value="11:00">11:00</option>
+          <option value="13:00">13:00</option>
+          <option value="13:30">13:30</option>
+          <option value="14:45">14:45</option>
+          <option value="15:15">15:15</option>
+          <option value="16:45">16:45</option>
+        </select>
+      </div>
+
+      <label for="e5">退勤</label>
+      <div class="time-row">
+        <input type="time" id="e5" class="time-input">
+        <select id="e5-preset" class="time-preset">
+          <option value="">プリセット</option>
+          <option value="10:15">10:15</option>
+          <option value="10:30">10:30</option>
+          <option value="12:00">12:00</option>
+          <option value="14:30">14:30</option>
+          <option value="16:15">16:15</option>
+          <option value="18:15">18:15</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 手当・交通費・時給 -->
+  <div class="box">
+    <h2>手当・交通費・時給</h2>
+    <div id="specialBonusBox" style="display:none; font-size:13px; color:#444; margin-bottom:6px;">
+  ★特別手当：<strong>2,625 円</strong>
+</div>
+
+
+    <label for="extra1">手当1（円）</label>
+    <div class="extra-wrap">
+      <input type="number" id="extra1" placeholder="0">
+      <span class="extra-hint">495 / 2,625</span>
+    </div>
+
+    <label for="extra2">手当2（円）</label>
+    <div class="extra-wrap">
+      <input type="number" id="extra2" placeholder="0">
+      <span class="extra-hint">495 / 2,625</span>
+    </div>
+
+    <label for="extra3">手当3（円）</label>
+    <div class="extra-wrap">
+      <input type="number" id="extra3" placeholder="0">
+      <span class="extra-hint">495 / 2,625</span>
+    </div>
+
+    <label for="extra4">手当4（円）</label>
+    <div class="extra-wrap">
+      <input type="number" id="extra4" placeholder="0">
+      <span class="extra-hint">495 / 2,625</span>
+    </div>
+
+    <label for="extra5">手当5（円）</label>
+    <div class="extra-wrap">
+      <input type="number" id="extra5" placeholder="0">
+      <span class="extra-hint">495 / 2,625</span>
+    </div>
+
+    <label for="transport">交通費（円）</label>
+    <input type="number" id="transport" placeholder="0">
+
+    <label for="hourly">時給</label>
+    <input type="number" id="hourly" value="1750">
+    <div class="note">現在の時給：<span id="hourlyDisplay">1,750 円</span></div>
+  </div>
+
+  <!-- 計算ボタン -->
+  <div class="box">
+    <button class="btn-main" type="button" onclick="calcDay()">5コマを計算する</button>
+  </div>
+
+  <!-- 計算結果 -->
+  <div id="result" class="box result-box">
+    ここに計算結果が表示されます
+  </div>
+
+  <!-- 履歴登録ボタン -->
+  <div class="box">
+    <button class="btn-main" type="button" onclick="addHistory()">この日を履歴に登録する</button>
+  </div>
+
+  <!-- 勤務履歴 -->
+  <div id="history-box" class="box">
+    <h2>【勤務履歴】</h2>
+    <div id="history"></div>
+  </div>
+
+  <!-- 月合計 -->
+  <div id="total-sum" class="box total">
+    <strong>月合計：</strong> 0 円
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

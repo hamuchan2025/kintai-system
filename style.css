@@ -1,0 +1,178 @@
+/* ベースレイアウト */
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+  max-width: 320px;
+  margin: 20px auto;
+  padding: 16px;
+  background: #f5f5f5;
+  color: #333;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+
+/* 共通ボックス */
+.box {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.box h2 {
+  margin-top: 0;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+/* ラベル＆入力 */
+label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+input[type="date"],
+input[type="time"],
+input[type="number"],
+select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+/* コマの枠 */
+.set {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: #fafafa;
+}
+
+.set-title {
+  font-weight: bold;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+/* 時間入力＋プリセット */
+.time-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.time-input {
+  flex: 1.2;
+}
+
+.time-preset {
+  flex: 1;
+  font-size: 0.85rem;
+}
+
+/* 手当入力の飾り表示用 */
+.extra-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.extra-wrap input[type="number"] {
+  flex: 1;
+  padding-right: 80px; /* 右側の「495 / 2,625」ぶんの余白 */
+}
+
+.extra-hint {
+  position: absolute;
+  right: 8px;
+  font-size: 11px;
+  color: #999;
+  pointer-events: none; /* クリックしても邪魔しない */
+}
+
+/* 交通費・時給 */
+#transport,
+#hourly {
+  max-width: 200px;
+}
+
+/* 時給表示 */
+.note {
+  font-size: 12px;
+  color: #666;
+}
+
+/* ボタン */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+.btn-main {
+  background: #2b7b3f;
+  color: #fff;
+  width: 100%;
+}
+
+.btn-main:hover {
+  background: #246435;
+}
+
+.btn-sub {
+  background: #c0392b;
+  color: #fff;
+  margin-top: 8px;
+}
+
+.btn-sub:hover {
+  background: #983b3a;
+}
+
+/* 計算結果エリア */
+.result-box {
+  background: #e7f6ed;
+  border: 1px solid #b7ddc2;
+}
+
+/* 履歴 */
+.history-item {
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  font-size: 13px;
+}
+
+/* 月合計 */
+.total {
+  font-size: 15px;
+  font-weight: bold;
+}
+
+/* スマホ対応 */
+@media (max-width: 480px) {
+  body {
+    padding: 8px;
+  }
+  .box {
+    padding: 10px 12px;
+  }
+  .time-row {
+    flex-wrap: wrap;
+  }
+}
