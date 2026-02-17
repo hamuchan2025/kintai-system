@@ -1,178 +1,167 @@
-/* ベースレイアウト */
-body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
-  max-width: 320px;
-  margin: 20px auto;
+:root{
+  --bg:#f3f6ff;
+  --card:#ffffff;
+  --text:#111827;
+  --muted:#6b7280;
+  --line:#e5e7eb;
+  --primary:#2563eb;
+  --danger:#ef4444;
+  --shadow:0 10px 30px rgba(0,0,0,.08);
+  --radius:14px;
+}
+
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  padding:24px 14px 60px;
+  font-family: system-ui, -apple-system, "Yu Gothic", "YuGothic", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+h1{
+  text-align:center;
+  margin: 6px 0 18px;
+  letter-spacing: .06em;
+}
+
+.box{
+  max-width: 820px;
+  margin: 12px auto;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
   padding: 16px;
-  background: #f5f5f5;
-  color: #333;
 }
 
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 20px;
-}
-
-/* 共通ボックス */
-.box {
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-}
-
-.box h2 {
-  margin-top: 0;
-  font-size: 16px;
-  margin-bottom: 8px;
-}
-
-/* ラベル＆入力 */
-label {
-  display: block;
+label{
+  display:block;
   font-size: 13px;
-  margin-bottom: 4px;
+  color: var(--muted);
+  margin-bottom: 6px;
 }
 
-input[type="date"],
-input[type="time"],
-input[type="number"],
-select {
-  box-sizing: border-box;
-  width: 95%;
-  padding: 6px 8px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  font-size: 14px;
+input, select{
+  width:100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 15px;
+  background:#fff;
+}
+
+.section-title{
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.small{ font-size:12px; color:var(--muted); }
+.muted{ color:var(--muted); }
+code{ background:#f4f4f5; padding:2px 6px; border-radius:8px; }
+
+.koma{
+  border:1px dashed #dbeafe;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 10px;
+}
+.koma-title{
+  font-weight: 700;
   margin-bottom: 8px;
 }
-
-/* コマの枠 */
-.set {
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 8px 10px;
-  margin-bottom: 8px;
-  background: #fafafa;
+.row{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
-
-.set-title {
-  font-weight: bold;
-  margin-bottom: 6px;
-  font-size: 13px;
+.col{
+  flex:1;
+  min-width: 180px;
 }
-
-/* 時間入力＋プリセット */
-.time-row {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
-.time-input {
-  flex: 1.2;
-}
-
-.time-preset {
-  flex: 1;
-  font-size: 0.85rem;
-}
-
-/* 手当入力の飾り表示用 */
-.extra-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.extra-wrap input[type="number"] {
-  flex: 1;
-  padding-right: 80px; /* 右側の「495 / 2,625」ぶんの余白 */
-}
-
-.extra-hint {
-  position: absolute;
-  right: 8px;
-  font-size: 11px;
-  color: #999;
-  pointer-events: none; /* クリックしても邪魔しない */
-}
-
-/* 交通費・時給 */
-#transport,
-#hourly {
-  max-width: 200px;
-}
-
-/* 時給表示 */
-.note {
+.hint{
   font-size: 12px;
-  color: #666;
+  color: var(--muted);
+  display:flex;
+  align-items:center;
 }
 
-/* ボタン */
-button {
-  cursor: pointer;
-  border: none;
-  border-radius: 4px;
-  padding: 8px 14px;
+.grid3{
+  display:grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width: 700px){
+  .grid3{ grid-template-columns: 1fr; }
+}
+
+.result{
+  padding-top: 10px;
+}
+.result-row{
+  display:flex;
+  justify-content:space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.result-row.total{
+  border-bottom: none;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.btns{
+  display:flex;
+  gap:10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.btn{
+  border:1px solid var(--line);
+  background:#fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor:pointer;
+  font-weight: 700;
+}
+.btn:hover{ filter: brightness(.98); }
+.btn.primary{
+  background: var(--primary);
+  color:#fff;
+  border-color: var(--primary);
+}
+.btn.ghost{
+  background: transparent;
+}
+.btn.danger{
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.table-wrap{ overflow-x:auto; }
+table{
+  width:100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+th, td{
+  border-bottom:1px solid var(--line);
+  padding: 10px 8px;
+  text-align:center;
   font-size: 14px;
 }
+th{ color: var(--muted); font-weight: 800; }
 
-.btn-main {
-  background: #2b7b3f;
-  color: #fff;
-  width: 100%;
-}
-
-.btn-main:hover {
-  background: #246435;
-}
-
-.btn-sub {
-  background: #c0392b;
-  color: #fff;
+.history-actions{
+  display:flex;
+  justify-content:flex-end;
   margin-top: 8px;
 }
 
-.btn-sub:hover {
-  background: #983b3a;
+.admin-row{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items:center;
 }
-
-/* 計算結果エリア */
-.result-box {
-  background: #e7f6ed;
-  border: 1px solid #b7ddc2;
-}
-
-/* 履歴 */
-.history-item {
-  border-radius: 6px;
-  padding: 8px 10px;
-  margin-bottom: 8px;
-  background: #f9f9f9;
-  border: 1px solid #ddd;
-  font-size: 13px;
-}
-
-/* 月合計 */
-.total {
-  font-size: 15px;
-  font-weight: bold;
-}
-
-/* スマホ対応 */
-@media (max-width: 480px) {
-  body {
-    padding: 8px;
-  }
-  .box {
-    padding: 10px 12px;
-  }
-  .time-row {
-    flex-wrap: wrap;
-  }
-}
+.admin-row input{ flex: 1; min-width: 220px; }
