@@ -1,234 +1,212 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>講師勤怠システム（本番）</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>講師勤怠システム</title>
+
+<style>
+body{
+  font-family: sans-serif;
+  background:#f4f6f9;
+  margin:0;
+  padding:20px;
+}
+h1{
+  text-align:center;
+}
+.box{
+  background:#fff;
+  padding:15px;
+  margin-bottom:15px;
+  border-radius:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+label{
+  display:block;
+  margin-top:10px;
+}
+input,select,button{
+  width:100%;
+  padding:8px;
+  margin-top:5px;
+  font-size:16px;
+}
+button{
+  margin-top:15px;
+  background:#2c7be5;
+  color:white;
+  border:none;
+  border-radius:6px;
+}
+button:hover{
+  opacity:0.9;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  border:1px solid #ddd;
+  padding:6px;
+  text-align:center;
+}
+th{
+  background:#2c7be5;
+  color:white;
+}
+</style>
 </head>
+
 <body>
-  <h1>講師勤怠システム</h1>
 
-  <!-- 勤務地 -->
-  <div class="box">
-    <label for="place">勤務地</label>
-    <select id="place">
-      <option value="寺津(水)">寺津(水)</option>
-      <option value="寺津(土)">寺津(土)</option>
-      <option value="お城下">お城下</option>
-      <option value="碧南">碧南</option>
-      <option value="安城">安城</option>
-      <option value="吉良">吉良</option>
-    </select>
-  </div>
+<h1>講師勤怠システム</h1>
 
-  <!-- 勤務日 -->
-  <div class="box">
-    <label for="date">勤務日</label>
-    <input type="date" id="date" />
-  </div>
+<div class="box">
+<label>勤務日</label>
+<input type="date" id="date">
 
-  <!-- 勤務時間 -->
-  <div class="box">
-    <div class="section-title">勤務時間（1〜5コマ）</div>
+<label>勤務地</label>
+<select id="place">
+<option value="寺津（水）">寺津（水）</option>
+<option value="お城下">お城下</option>
+<option value="碧南">碧南</option>
+<option value="安城">安城</option>
+<option value="吉良">吉良</option>
+</select>
 
-    <!-- 1 -->
-    <div class="koma" data-index="1">
-      <div class="koma-title">【1コマ目】</div>
-      <div class="row">
-        <div class="col">
-          <label>出勤</label>
-          <input type="time" class="start" />
-        </div>
-        <div class="col">
-          <label>プリセット</label>
-          <select class="preset"></select>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          <label>退勤</label>
-          <input type="time" class="end" />
-        </div>
-        <div class="col hint">※プリセットを選ぶと時間が入ります</div>
-      </div>
-    </div>
+<label>開始時間</label>
+<input type="time" id="start">
 
-    <!-- 2 -->
-    <div class="koma" data-index="2">
-      <div class="koma-title">【2コマ目】</div>
-      <div class="row">
-        <div class="col"><label>出勤</label><input type="time" class="start" /></div>
-        <div class="col"><label>プリセット</label><select class="preset"></select></div>
-      </div>
-      <div class="row">
-        <div class="col"><label>退勤</label><input type="time" class="end" /></div>
-        <div class="col hint"></div>
-      </div>
-    </div>
+<label>終了時間</label>
+<input type="time" id="end">
 
-    <!-- 3 -->
-    <div class="koma" data-index="3">
-      <div class="koma-title">【3コマ目】</div>
-      <div class="row">
-        <div class="col"><label>出勤</label><input type="time" class="start" /></div>
-        <div class="col"><label>プリセット</label><select class="preset"></select></div>
-      </div>
-      <div class="row">
-        <div class="col"><label>退勤</label><input type="time" class="end" /></div>
-        <div class="col hint"></div>
-      </div>
-    </div>
+<label>時給</label>
+<input type="number" id="wage" value="1670">
 
-    <!-- 4 -->
-    <div class="koma" data-index="4">
-      <div class="koma-title">【4コマ目】</div>
-      <div class="row">
-        <div class="col"><label>出勤</label><input type="time" class="start" /></div>
-        <div class="col"><label>プリセット</label><select class="preset"></select></div>
-      </div>
-      <div class="row">
-        <div class="col"><label>退勤</label><input type="time" class="end" /></div>
-        <div class="col hint"></div>
-      </div>
-    </div>
+<label>交通費</label>
+<input type="number" id="transport" value="0">
 
-    <!-- 5 -->
-    <div class="koma" data-index="5">
-      <div class="koma-title">【5コマ目】</div>
-      <div class="row">
-        <div class="col"><label>出勤</label><input type="time" class="start" /></div>
-        <div class="col"><label>プリセット</label><select class="preset"></select></div>
-      </div>
-      <div class="row">
-        <div class="col"><label>退勤</label><input type="time" class="end" /></div>
-        <div class="col hint"></div>
-      </div>
-    </div>
-  </div>
+<button onclick="saveData()">保存</button>
+<button onclick="exportPDF()">PDF出力</button>
+</div>
 
-  <!-- 手当・交通費・時給 -->
-  <div class="box grid3">
-    <div>
-      <label for="allowance">手当（円）</label>
-      <input type="number" id="allowance" value="0" min="0" step="10" />
-    </div>
-    <div>
-      <label for="transport">交通費（円）</label>
-      <input type="number" id="transport" value="0" min="0" step="10" />
-    </div>
-    <div>
-      <label for="hourly">時給（円）</label>
-      <input type="number" id="hourly" value="1670" min="0" step="10" />
-    </div>
-  </div>
+<div class="box">
+<h3>勤務履歴</h3>
+<table>
+<thead>
+<tr>
+<th>日付</th>
+<th>勤務地</th>
+<th>時間</th>
+<th>合計</th>
+</tr>
+</thead>
+<tbody id="history"></tbody>
+</table>
+</div>
 
-  <!-- 計算結果 -->
-  <div class="box result">
-    <div class="result-row">
-      <div>勤務合計（分）</div>
-      <div id="workMinutes">0</div>
-    </div>
-    <div class="result-row">
-      <div>時給分（円）</div>
-      <div id="wageAmount">0</div>
-    </div>
-    <div class="result-row total">
-      <div>合計（円）</div>
-      <div id="grandTotal">0</div>
-    </div>
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
-    <div class="btns">
-      <button id="btnCalc" class="btn">計算</button>
-      <button id="btnSave" class="btn primary">保存（クラウド）</button>
-      <button id="btnClear" class="btn ghost">入力クリア</button>
-    </div>
-  </div>
+const firebaseConfig = {
+  apiKey: "AIzaSyCM55UMJ_7dzoNN-sWFKbjr6GPXagjZ45o",
+  authDomain: "kintai-system-db3bb.firebaseapp.com",
+  projectId: "kintai-system-db3bb",
+  storageBucket: "kintai-system-db3bb.firebasestorage.app",
+  messagingSenderId: "847896795149",
+  appId: "1:847896795149:web:ff726d60d53a81511b1d44"
+};
 
-  <!-- 履歴 -->
-  <div class="box">
-    <div class="section-title">勤務履歴</div>
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-    <div class="history-actions">
-      <button id="btnClearAll" class="btn danger ghost">履歴をクリア（表示のみ）</button>
-      <div class="small muted">※クラウドのデータは消しません（安全仕様）</div>
-    </div>
+window.db = db;
+window.fb = { collection, addDoc, getDocs };
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>勤務日</th>
-            <th>勤務地</th>
-            <th>合計</th>
-            <th>詳細</th>
-            <th>削除</th>
-          </tr>
-        </thead>
-        <tbody id="historyBody"></tbody>
-      </table>
-    </div>
-  </div>
+window.authReady = new Promise((resolve)=>{
+  onAuthStateChanged(auth,(user)=>{
+    if(user){
+      window.currentUid = user.uid;
+      resolve(user);
+    }
+  });
+});
 
-  <!-- 管理者（出力） -->
-  <div class="box admin">
-    <div class="section-title">管理者専用（出力）</div>
-    <div class="admin-row">
-      <input type="password" id="adminPass" placeholder="管理者パスワード" />
-      <button id="btnExportCSV" class="btn">Excel(CSV)出力</button>
-      <button id="btnExportPDF" class="btn">PDF出力</button>
-    </div>
-    <div class="small muted">
-      ※管理者パスは app.js の <code>ADMIN_PASS</code> を変更してください。
-    </div>
-  </div>
+signInAnonymously(auth).catch(console.error);
+</script>
 
-  <!-- ================= Firebase / Firestore / Auth ================= -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import {
-      getFirestore,
-      collection, getDocs,
-      doc, setDoc, deleteDoc,
-      onSnapshot
-    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+<!-- jsPDF -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCM55UMJ_7dzoNN-sWFKbjr6GPXagjZ45o",
-      authDomain: "kintai-system-db3bb.firebaseapp.com",
-      projectId: "kintai-system-db3bb",
-      storageBucket: "kintai-system-db3bb.firebasestorage.app",
-      messagingSenderId: "847896795149",
-      appId: "1:847896795149:web:ff726d60d53a81511b1d44"
-    };
+<script>
+async function saveData(){
+  await window.authReady;
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  const date = document.getElementById("date").value;
+  const place = document.getElementById("place").value;
+  const start = document.getElementById("start").value;
+  const end = document.getElementById("end").value;
+  const wage = Number(document.getElementById("wage").value);
+  const transport = Number(document.getElementById("transport").value);
 
-    // app.js から使うために global に出す
-    window.db = db;
-    window.fb = { collection, getDocs, doc, setDoc, deleteDoc, onSnapshot };
+  const startTime = new Date(`1970-01-01T${start}:00`);
+  const endTime = new Date(`1970-01-01T${end}:00`);
+  const hours = (endTime - startTime) / 1000 / 60 / 60;
+  const total = wage * hours + transport;
 
-    // 匿名ログイン（従業員はアカウント不要）
-    window.authReady = new Promise((resolve) => {
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          window.currentUid = user.uid;
-          resolve(user);
-        }
-      });
-    });
-    signInAnonymously(auth).catch(console.error);
-  </script>
+  await window.fb.addDoc(
+    window.fb.collection(window.db,"kintai"),
+    {date,place,start,end,total}
+  );
 
-  <!-- ================= PDF出力（jsPDF + 日本語フォント） ================= -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-font-noto@1.0.1/dist/NotoSansJP-Regular-normal.js"></script>
+  alert("保存しました");
+  loadData();
+}
 
-  <!-- app -->
-  <script src="app.js"></script>
+async function loadData(){
+  await window.authReady;
+  const tbody = document.getElementById("history");
+  tbody.innerHTML = "";
+
+  const querySnapshot = await window.fb.getDocs(
+    window.fb.collection(window.db,"kintai")
+  );
+
+  querySnapshot.forEach((doc)=>{
+    const d = doc.data();
+    tbody.innerHTML += `
+      <tr>
+        <td>${d.date}</td>
+        <td>${d.place}</td>
+        <td>${d.start}〜${d.end}</td>
+        <td>${d.total.toLocaleString()}円</td>
+      </tr>
+    `;
+  });
+}
+
+function exportPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.text("勤怠一覧",10,10);
+
+  const rows = document.querySelectorAll("#history tr");
+  let y = 20;
+  rows.forEach(row=>{
+    doc.text(row.innerText,10,y);
+    y+=10;
+  });
+
+  doc.save("kintai.pdf");
+}
+
+loadData();
+</script>
+
 </body>
 </html>
-
