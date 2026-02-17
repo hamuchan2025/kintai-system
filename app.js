@@ -2,23 +2,80 @@
 // 設定
 // =====================
 const STORAGE_KEY = "kintai_main_records";
-
-// 簡易ロック（管理者だけ出力）
-// ※講師に教えない
-const ADMIN_PASS = "1234";
+const ADMIN_PASS = "1234"; // ←管理者パスワード（変更OK）
 
 // プリセット（必要なら自由に追加/変更OK）
 const PRESETS = [
   { label: "（選択）", start: "", end: "" },
-  { label: "08:45-10:15（90分）", start: "08:45", end: "10:15" },
-  { label: "09:15-10:45（90分）", start: "09:15", end: "10:45" },
-  { label: "10:30-12:00（90分）", start: "10:30", end: "12:00" },
-  { label: "11:00-12:30（90分）", start: "11:00", end: "12:30" },
-  { label: "13:00-14:30（90分）", start: "13:00", end: "14:30" },
-  { label: "13:30-15:00（90分）", start: "13:30", end: "15:00" },
-  { label: "15:15-16:45（90分）", start: "15:15", end: "16:45" },
-  
+  { label: "08:45-10:15", start: "08:45", end: "10:15" },
+  { label: "09:15-10:45", start: "09:15", end: "10:45" },
+  { label: "10:30-12:00", start: "10:30", end: "12:00" },
+  { label: "11:00-12:30", start: "11:00", end: "12:30" },
+  { label: "13:00-14:30", start: "13:00", end: "14:30" },
+  { label: "13:30-15:00", start: "13:30", end: "15:00" },
+  { label: "14:45-16:15", start: "14:45", end: "16:15" },
+  { label: "15:15-16:45", start: "15:15", end: "16:45" },
+  { label: "16:45-18:15", start: "16:45", end: "18:15" },
+  { label: "15:30-17:00", start: "15:30", end: "17:00" },
+  { label: "13:45-15:15", start: "13:45", end: "15:15" },
 ];
+
+// ===== 勤務地デフォルト（旧版から復元）=====
+const PLACE_DEFAULTS = {
+  "寺津(土)": [
+    { start:"08:45", end:"10:15" },
+    { start:"10:30", end:"12:00" },
+    { start:"13:00", end:"14:30" },
+    { start:"14:45", end:"16:15" },
+    { start:"", end:"" },
+  ],
+  "寺津(水)": [
+    { start:"16:45", end:"18:15" },
+    { start:"", end:"" },
+    { start:"", end:"" },
+    { start:"", end:"" },
+    { start:"", end:"" },
+  ],
+  "安城": [
+    { start:"08:45", end:"10:15" },
+    { start:"10:30", end:"12:00" },
+    { start:"13:00", end:"14:30" },
+    { start:"14:45", end:"16:15" },
+    { start:"", end:"" },
+  ],
+  "お城下": [
+    { start:"09:15", end:"10:45" },
+    { start:"11:00", end:"12:30" },
+    { start:"13:30", end:"15:00" },
+    { start:"15:15", end:"16:45" },
+    { start:"", end:"" },
+  ],
+  "碧南": [
+    { start:"09:15", end:"10:45" },
+    { start:"11:00", end:"12:30" },
+    { start:"", end:"" },
+    { start:"", end:"" },
+    { start:"", end:"" },
+  ],
+  // 吉良は旧コードに無かったので空（必要なら追加できます）
+  "吉良": [
+    { start:"", end:"" },
+    { start:"", end:"" },
+    { start:"", end:"" },
+    { start:"", end:"" },
+    { start:"", end:"" },
+  ],
+};
+
+// 交通費（旧版そのまま）
+const PLACE_FARE = {
+  "寺津(土)": 60,
+  "寺津(水)": 60,
+  "安城": 220,
+  "お城下": 80,
+  "碧南": 160,
+  "吉良": 0,
+};
 
 // =====================
 // DOM
@@ -50,15 +107,19 @@ const historyBody = document.getElementById("historyBody");
 // =====================
 initPresets();
 setTodayIfEmpty();
+applyPlaceDefaults(elPlace.value);
 renderHistory();
 
-// 入力変更で自動計算（気持ちよくする）
+// 入力変更で自動計算
 document.querySelectorAll("input, select").forEach((x) => {
   x.addEventListener("change", () => {
-    // 管理者パス欄の変更は除外
     if (x === adminPass) return;
     calcAndRender();
   });
+});
+
+elPlace.addEventListener("change", () => {
+  applyPlaceDefaults(elPlace.value);
 });
 
 btnCalc.addEventListener("click", calcAndRender);
@@ -99,6 +160,30 @@ function initPresets() {
 }
 
 // =====================
+// 勤務地デフォルト適用（時間＋交通費）
+// =====================
+function applyPlaceDefaults(place) {
+  const defs = PLACE_DEFAULTS[place] || [];
+
+  document.querySelectorAll(".koma").forEach((koma, idx) => {
+    const d = defs[idx] || { start:"", end:"" };
+
+    const s = koma.querySelector(".start");
+    const e = koma.querySelector(".end");
+    const p = koma.querySelector(".preset");
+
+    if (s) s.value = d.start || "";
+    if (e) e.value = d.end || "";
+    if (p) p.selectedIndex = 0; // プリセット表示は（選択）に戻す
+  });
+
+  // 交通費
+  elTransport.value = (PLACE_FARE[place] ?? 0);
+
+  calcAndRender();
+}
+
+// =====================
 // 計算
 // =====================
 function timeToMinutes(t) {
@@ -130,7 +215,6 @@ function calc() {
   const transport = Number(elTransport.value || 0);
   const hourly = Number(elHourly.value || 0);
 
-  // 分→時間（小数）
   const hours = totalMinutes / 60;
   const wageAmount = Math.round(hourly * hours);
   const grandTotal = wageAmount + allowance + transport;
@@ -201,7 +285,6 @@ function renderHistory() {
     const detail = makeDetailText(r);
 
     const tr = document.createElement("tr");
-
     tr.innerHTML = `
       <td>${escapeHtml(r.date || "")}</td>
       <td>${escapeHtml(r.place || "")}</td>
@@ -209,10 +292,8 @@ function renderHistory() {
       <td><button class="btn ghost" data-detail="${idx}">表示</button></td>
       <td><button class="btn danger ghost" data-del="${idx}">削除</button></td>
     `;
-
     historyBody.appendChild(tr);
 
-    // 詳細行（最初は非表示）
     const tr2 = document.createElement("tr");
     tr2.style.display = "none";
     tr2.innerHTML = `
@@ -223,7 +304,6 @@ function renderHistory() {
     historyBody.appendChild(tr2);
   });
 
-  // ボタンイベント
   historyBody.querySelectorAll("[data-del]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const i = Number(btn.getAttribute("data-del"));
@@ -263,16 +343,15 @@ function makeDetailText(r) {
 }
 
 function clearInputs() {
-  // 日付は残す（使いやすい）
+  // 日付は残す
   elAllowance.value = "0";
-  elTransport.value = "0";
-  // 時給は残す
+  // 交通費は勤務地で自動セットするので、いったん再適用
   document.querySelectorAll(".koma").forEach((koma) => {
     koma.querySelector(".start").value = "";
     koma.querySelector(".end").value = "";
     koma.querySelector(".preset").selectedIndex = 0;
   });
-  calcAndRender();
+  applyPlaceDefaults(elPlace.value);
 }
 
 function setTodayIfEmpty() {
@@ -306,7 +385,6 @@ function exportCSV() {
     return;
   }
 
-  // 列（5コマ分）
   const headers = [
     "勤務日","勤務地",
     "1出勤","1退勤","1分",
@@ -388,7 +466,7 @@ function exportPDF() {
       </style>
     </head><body>
       <h1>勤怠一覧</h1>
-      <div class="muted">保存キー：kintai_main_records / 印刷画面で「PDFに保存」を選んでください</div>
+      <div class="muted">印刷画面で「PDFに保存」を選んでください</div>
       <button onclick="window.print()">印刷（PDF保存）</button>
       <table>
         <thead><tr><th>勤務日</th><th>勤務地</th><th>合計（円）</th></tr></thead>
@@ -410,4 +488,3 @@ function escapeHtml(str){
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#39;");
 }
-
