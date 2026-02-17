@@ -1,351 +1,411 @@
-/* ========= 共通ユーティリティ ========= */
-
-// 数字を「1,234」形式に
-function fmt(n) {
-  const num = Number(n);
-  if (!isFinite(num)) return "0";
-  return num.toLocaleString("ja-JP");
-}
-
-// "HH:MM" → 分
-function timeToMinutes(t) {
-  if (!t) return null;
-  const parts = t.split(":");
-  if (parts.length !== 2) return null;
-  const h = parseInt(parts[0], 10);
-  const m = parseInt(parts[1], 10);
-  if (isNaN(h) || isNaN(m)) return null;
-  return h * 60 + m;
-}
-
-// 分差分
-function diffMinutes(start, end) {
-  const s = timeToMinutes(start);
-  const e = timeToMinutes(end);
-  if (s == null || e == null) return 0;
-  const d = e - s;
-  return d > 0 ? d : 0;
-}
-
-// 分 → {h, m}
-function toHm(mins) {
-  const m = Math.max(0, mins | 0);
-  return { h: Math.floor(m / 60), m: m % 60 };
-}
-
-/* ========= データ管理 ========= */
-
+// =====================
+// 設定
+// =====================
 const STORAGE_KEY = "kintai_main_records";
-let records = [];      
-let lastRecord = null; 
-let editingId = null;  
 
-/* ========= 初期処理 ========= */
+// 簡易ロック（管理者だけ出力）
+// ※講師に教えない
+const ADMIN_PASS = "1234";
 
-window.addEventListener("load", () => {
+// プリセット（必要なら自由に追加/変更OK）
+const PRESETS = [
+  { label: "（選択）", start: "", end: "" },
+  { label: "09:15-10:45（90分）", start: "09:15", end: "10:45" },
+  { label: "10:30-12:00（90分）", start: "10:30", end: "12:00" },
+  { label: "13:45-15:15（90分）", start: "13:45", end: "15:15" },
+  { label: "15:30-17:00（90分）", start: "15:30", end: "17:00" },
+  { label: "18:00-19:30（90分）", start: "18:00", end: "19:30" },
+  { label: "19:45-21:15（90分）", start: "19:45", end: "21:15" },
+  { label: "22:00-23:00（60分）", start: "22:00", end: "23:00" },
+];
 
-  const dateEl = document.getElementById("date");
-  if (dateEl && !dateEl.value) {
-    dateEl.value = new Date().toISOString().slice(0, 10);
-  }
+// =====================
+// DOM
+// =====================
+const elPlace = document.getElementById("place");
+const elDate = document.getElementById("date");
 
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      const data = JSON.parse(saved);
-      records = Array.isArray(data) ? data : [];
-    } catch {
-      records = [];
-    }
-  }
+const elAllowance = document.getElementById("allowance");
+const elTransport = document.getElementById("transport");
+const elHourly = document.getElementById("hourly");
 
-  const hourly = document.getElementById("hourly");
-  const hourlyDisp = document.getElementById("hourlyDisplay");
-  if (hourly && hourlyDisp) {
-    hourlyDisp.textContent = `${fmt(hourly.value)} 円`;
-    hourly.addEventListener("input", () => {
-      hourlyDisp.textContent = `${fmt(hourly.value)} 円`;
-    });
-  }
+const elWorkMinutes = document.getElementById("workMinutes");
+const elWageAmount = document.getElementById("wageAmount");
+const elGrandTotal = document.getElementById("grandTotal");
 
-  setupTimePresets();
-  setupPlaceDefaults();
+const btnCalc = document.getElementById("btnCalc");
+const btnSave = document.getElementById("btnSave");
+const btnClear = document.getElementById("btnClear");
+const btnClearAll = document.getElementById("btnClearAll");
+
+const adminPass = document.getElementById("adminPass");
+const btnExportCSV = document.getElementById("btnExportCSV");
+const btnExportPDF = document.getElementById("btnExportPDF");
+
+const historyBody = document.getElementById("historyBody");
+
+// =====================
+// 初期化
+// =====================
+initPresets();
+setTodayIfEmpty();
+renderHistory();
+
+// 入力変更で自動計算（気持ちよくする）
+document.querySelectorAll("input, select").forEach((x) => {
+  x.addEventListener("change", () => {
+    // 管理者パス欄の変更は除外
+    if (x === adminPass) return;
+    calcAndRender();
+  });
+});
+
+btnCalc.addEventListener("click", calcAndRender);
+btnSave.addEventListener("click", onSave);
+btnClear.addEventListener("click", clearInputs);
+
+btnClearAll.addEventListener("click", () => {
+  if (!confirm("履歴を全削除します。よろしいですか？")) return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
   renderHistory();
 });
 
-/* ========= プリセット ========= */
+btnExportCSV.addEventListener("click", exportCSV);
+btnExportPDF.addEventListener("click", exportPDF);
 
-function setupTimePresets() {
-  [1, 2, 3, 4, 5].forEach(i => {
-    const sp = document.getElementById(`s${i}-preset`);
-    const si = document.getElementById(`s${i}`);
-    if (sp && si) {
-      sp.addEventListener("change", () => {
-        if (sp.value) si.value = sp.value;
-      });
-    }
+// =====================
+// プリセット
+// =====================
+function initPresets() {
+  document.querySelectorAll(".koma").forEach((koma) => {
+    const preset = koma.querySelector(".preset");
+    preset.innerHTML = "";
 
-    const ep = document.getElementById(`e${i}-preset`);
-    const ei = document.getElementById(`e${i}`);
-    if (ep && ei) {
-      ep.addEventListener("change", () => {
-        if (ep.value) ei.value = ep.value;
-      });
-    }
+    PRESETS.forEach((p) => {
+      const opt = document.createElement("option");
+      opt.value = JSON.stringify({ start: p.start, end: p.end });
+      opt.textContent = p.label;
+      preset.appendChild(opt);
+    });
+
+    preset.addEventListener("change", () => {
+      const v = JSON.parse(preset.value);
+      koma.querySelector(".start").value = v.start || "";
+      koma.querySelector(".end").value = v.end || "";
+      calcAndRender();
+    });
   });
 }
 
-/* ========= 勤務地デフォルト ========= */
-
-function setupPlaceDefaults() {
-
-  const defaults = {
-    "寺津(土)": { s1:"08:45",e1:"10:15", s2:"10:30",e2:"12:00", s3:"13:00",e3:"14:30", s4:"14:45",e4:"16:15" },
-    "寺津(水)": { s1:"16:45",e1:"18:15" },
-    "安城":     { s1:"08:45",e1:"10:15", s2:"10:30",e2:"12:00", s3:"13:00",e3:"14:30", s4:"14:45",e4:"16:15" },
-    "お城下":   { s1:"09:15",e1:"10:45", s2:"11:00",e2:"12:30", s3:"13:30",e3:"15:00", s4:"15:15",e4:"16:45" },
-    "碧南":     { s1:"09:15",e1:"10:45", s2:"11:00",e2:"12:30" }
-  };
-
-  const fare = {
-    "寺津(土)": 60,
-    "寺津(水)": 60,
-    "安城": 220,
-    "お城下": 80,
-    "碧南": 160
-  };
-
-  function applyDefaults() {
-    const placeEl = document.getElementById("place");
-    const p = placeEl.value;
-    const d = defaults[p] || {};
-
-    for (let i = 1; i <= 5; i++) {
-      document.getElementById(`s${i}`).value = d[`s${i}`] || "";
-      document.getElementById(`e${i}`).value = d[`e${i}`] || "";
-    }
-
-    document.getElementById("transport").value = fare[p] ?? "";
-
-    // ★ 安城のときだけ特別手当表示
-    const specialBox = document.getElementById("specialBonusBox");
-    specialBox.style.display = (p === "安城") ? "block" : "none";
-  }
-
-  document.getElementById("place").addEventListener("change", applyDefaults);
-  applyDefaults();
+// =====================
+// 計算
+// =====================
+function timeToMinutes(t) {
+  if (!t) return null;
+  const [hh, mm] = t.split(":").map(Number);
+  if (Number.isNaN(hh) || Number.isNaN(mm)) return null;
+  return hh * 60 + mm;
 }
 
-/* ========= 5コマ計算 ========= */
+function calc() {
+  const slots = [];
+  let totalMinutes = 0;
 
-function calcDay() {
-  const hourly = Number(document.getElementById("hourly").value || 0);
-  const transport = Number(document.getElementById("transport").value || 0);
-  const place = document.getElementById("place").value;
+  document.querySelectorAll(".koma").forEach((koma) => {
+    const start = koma.querySelector(".start").value;
+    const end = koma.querySelector(".end").value;
 
-  let totalMin = 0;
-  const details = [];
-  let extraSum = 0;
-  const extraPerSlot = [];
+    const s = timeToMinutes(start);
+    const e = timeToMinutes(end);
 
-  // 通常手当（extra1〜extra5）
-  for (let i = 1; i <= 5; i++) {
-    const ex = Number(document.getElementById("extra" + i).value || 0);
-    extraPerSlot.push(ex);
-    extraSum += ex;
-  }
+    let minutes = 0;
+    if (s !== null && e !== null && e > s) minutes = e - s;
 
-  // ★ 特別手当（安城の場合のみ 2,625円）
-  const specialBonus = (place === "安城") ? 2625 : 0;
+    slots.push({ start, end, minutes });
+    totalMinutes += minutes;
+  });
 
-  let detailHtml = "";
+  const allowance = Number(elAllowance.value || 0);
+  const transport = Number(elTransport.value || 0);
+  const hourly = Number(elHourly.value || 0);
 
-  for (let i = 1; i <= 5; i++) {
-    const s = document.getElementById("s" + i).value;
-    const e = document.getElementById("e" + i).value;
-    if (!s || !e) continue;
+  // 分→時間（小数）
+  const hours = totalMinutes / 60;
+  const wageAmount = Math.round(hourly * hours);
+  const grandTotal = wageAmount + allowance + transport;
 
-    const diff = diffMinutes(s, e);
-    if (!diff) continue;
-
-    totalMin += diff;
-    const hm = toHm(diff);
-
-    const perBase = Math.round((diff / 60) * hourly);
-    const perTotal = perBase + extraPerSlot[i - 1];
-
-    detailHtml += `【${i}コマ】 ${s}〜${e}（${hm.h}時間${hm.m}分） ／ 手当込み：${fmt(perTotal)}円<br>`;
-
-    details.push({ index: i, start: s, end: e, diffMin: diff });
-  }
-
-  const totalHm = toHm(totalMin);
-  const baseSalary = Math.round((totalMin / 60) * hourly);
-
-  const totalSalary = baseSalary + extraSum + specialBonus + transport;
-
-  const date = document.getElementById("date").value;
-
-  const id = editingId != null ? editingId : Date.now();
-
-  lastRecord = {
-    id,
-    place,
-    date,
-    totalMin,
-    baseSalary,
-    extraSum,             // ★通常手当
-    specialBonus,         // ★特別手当
+  return {
+    place: elPlace.value,
+    date: elDate.value,
+    allowance,
     transport,
-    totalSalary,
-    extraPerSlot,
-    detailsList: details,
-    hourly
+    hourly,
+    slots,
+    totalMinutes,
+    wageAmount,
+    grandTotal,
   };
-
-  const specialLine = (specialBonus > 0)
-    ? `特別手当：${fmt(specialBonus)} 円<br>`
-    : "";
-
-  document.getElementById("result").innerHTML =
-    `<strong>【勤務日】</strong>${date}<br>` +
-    `<strong>【勤務地】</strong>${place}<br><br>` +
-    `<strong>【時間内訳】</strong><br>${detailHtml}<br>` +
-    `勤務：${totalHm.h}時間${totalHm.m}分<br>` +
-    `基本給：${fmt(baseSalary)} 円<br>` +
-    `通常手当合計：${fmt(extraSum)} 円<br>` +
-    specialLine +
-    `交通費：${fmt(transport)} 円<br>` +
-    `<strong>日給：${fmt(totalSalary)} 円</strong>`;
 }
 
-/* ========= 履歴登録 ========= */
+function calcAndRender() {
+  const r = calc();
+  elWorkMinutes.textContent = String(r.totalMinutes);
+  elWageAmount.textContent = String(r.wageAmount);
+  elGrandTotal.textContent = String(r.grandTotal);
+}
 
-function addHistory() {
-  if (!lastRecord) {
-    alert("先に計算してください");
+// =====================
+// 保存・履歴
+// =====================
+function loadRecords() {
+  return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+}
+function saveRecords(arr) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+}
+
+function onSave() {
+  const r = calc();
+
+  if (!r.date) {
+    alert("勤務日を入れてください");
+    return;
+  }
+  if (r.totalMinutes <= 0) {
+    alert("勤務時間が0分です（出勤/退勤を入れるかプリセットを選んでください）");
     return;
   }
 
-  if (editingId == null) {
-    records.push(lastRecord);
-  } else {
-    const idx = records.findIndex(r => r.id === editingId);
-    if (idx >= 0) records[idx] = lastRecord;
-  }
-
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  editingId = null;
-  lastRecord = null;
-
-  document.getElementById("result").textContent = "ここに計算結果が表示されます";
+  const records = loadRecords();
+  records.unshift({
+    ...r,
+    createdAt: new Date().toISOString(),
+  });
+  saveRecords(records);
 
   renderHistory();
+  alert("保存しました");
 }
-
-/* ========= 履歴表示 ========= */
 
 function renderHistory() {
-  const historyDiv = document.getElementById("history");
-  const totalDiv = document.getElementById("total-sum");
+  const records = loadRecords();
+  historyBody.innerHTML = "";
 
-  historyDiv.innerHTML = "";
-  let sum = 0;
-
-  const sorted = [...records].sort((a, b) =>
-    (b.date || "").localeCompare(a.date || "")
-  );
-
-  sorted.forEach(r => {
-    const wrap = document.createElement("div");
-    wrap.className = "history-item";
-
-    const hm = toHm(r.totalMin);
-
-    let detail = "";
-    r.detailsList.forEach(d => {
-      const hm2 = toHm(d.diffMin);
-      const perBase = Math.round((d.diffMin / 60) * r.hourly);
-      const perExtra = r.extraPerSlot[d.index - 1] || 0;
-      const perTotal = perBase + perExtra;
-
-      detail += `・${d.index}コマ：${d.start}〜${d.end}（${hm2.h}時間${hm2.m}分） ／ 手当込み：${fmt(perTotal)}円<br>`;
-    });
-
-    const specialLine = r.specialBonus
-      ? `特別手当：${fmt(r.specialBonus)} 円<br>`
-      : "";
-
-    const dayTotal = r.baseSalary + r.extraSum + r.specialBonus + r.transport;
-
-    wrap.innerHTML =
-      `<div>` +
-        `<input type="checkbox" class="delete-check" data-id="${r.id}">` +
-        `<strong>${r.place}</strong> ｜ ${r.date}` +
-        `<span class="edit-link" data-id="${r.id}" style="margin-left:6px; color:#06c; cursor:pointer; font-size:0.8rem;">編集</span>` +
-      `</div>` +
-      detail +
-      `勤務：${hm.h}時間${hm.m}分<br>` +
-      `基本給：${fmt(r.baseSalary)} 円<br>` +
-      `通常手当合計：${fmt(r.extraSum)} 円<br>` +
-      specialLine +
-      `交通費：${fmt(r.transport)} 円<br>` +
-      `<strong>日給：${fmt(dayTotal)} 円</strong>`;
-
-    historyDiv.appendChild(wrap);
-    sum += dayTotal;
-  });
-
-  totalDiv.innerHTML = `<strong>月合計：</strong> ${fmt(sum)} 円`;
-
-  if (records.length > 0) {
-    const btn = document.createElement("button");
-    btn.textContent = "選択した履歴を削除";
-    btn.className = "btn-sub";
-    btn.onclick = deleteSelectedRecords;
-    historyDiv.appendChild(btn);
+  if (records.length === 0) {
+    historyBody.innerHTML = `<tr><td colspan="5" class="muted">履歴がありません</td></tr>`;
+    return;
   }
 
-  document.querySelectorAll(".edit-link").forEach(link => {
-    link.addEventListener("click", () => startEdit(Number(link.dataset.id)));
+  records.forEach((r, idx) => {
+    const detail = makeDetailText(r);
+
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${escapeHtml(r.date || "")}</td>
+      <td>${escapeHtml(r.place || "")}</td>
+      <td>${escapeHtml(String(r.grandTotal ?? 0))}</td>
+      <td><button class="btn ghost" data-detail="${idx}">表示</button></td>
+      <td><button class="btn danger ghost" data-del="${idx}">削除</button></td>
+    `;
+
+    historyBody.appendChild(tr);
+
+    // 詳細行（最初は非表示）
+    const tr2 = document.createElement("tr");
+    tr2.style.display = "none";
+    tr2.innerHTML = `
+      <td colspan="5" style="text-align:left; padding:12px;">
+        <div class="small">${detail}</div>
+      </td>
+    `;
+    historyBody.appendChild(tr2);
+  });
+
+  // ボタンイベント
+  historyBody.querySelectorAll("[data-del]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const i = Number(btn.getAttribute("data-del"));
+      const records = loadRecords();
+      if (!confirm("この履歴を削除しますか？")) return;
+      records.splice(i, 1);
+      saveRecords(records);
+      renderHistory();
+    });
+  });
+
+  historyBody.querySelectorAll("[data-detail]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const row = btn.closest("tr");
+      const next = row.nextElementSibling;
+      const open = next.style.display !== "none";
+      next.style.display = open ? "none" : "table-row";
+      btn.textContent = open ? "表示" : "閉じる";
+    });
   });
 }
 
-/* ========= 履歴削除 ========= */
+function makeDetailText(r) {
+  const slots = (r.slots || [])
+    .map((s, i) => `(${i + 1}) ${s.start || "--:--"}〜${s.end || "--:--"} / ${s.minutes || 0}分`)
+    .join("　");
 
-function deleteSelectedRecords() {
-  const checks = document.querySelectorAll(".delete-check");
-  const ids = [];
-  checks.forEach(c => { if (c.checked) ids.push(Number(c.dataset.id)); });
-
-  records = records.filter(r => !ids.includes(r.id));
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  renderHistory();
+  return `
+    <b>勤務：</b>${slots}<br>
+    <b>合計：</b>${r.totalMinutes || 0}分　
+    <b>時給：</b>${r.hourly || 0}円　
+    <b>時給分：</b>${r.wageAmount || 0}円　
+    <b>手当：</b>${r.allowance || 0}円　
+    <b>交通費：</b>${r.transport || 0}円　
+    <b>合計：</b>${r.grandTotal || 0}円
+  `.trim();
 }
 
-/* ========= 編集 ========= */
+function clearInputs() {
+  // 日付は残す（使いやすい）
+  elAllowance.value = "0";
+  elTransport.value = "0";
+  // 時給は残す
+  document.querySelectorAll(".koma").forEach((koma) => {
+    koma.querySelector(".start").value = "";
+    koma.querySelector(".end").value = "";
+    koma.querySelector(".preset").selectedIndex = 0;
+  });
+  calcAndRender();
+}
 
-function startEdit(id) {
-  const rec = records.find(r => r.id === id);
-  if (!rec) return;
+function setTodayIfEmpty() {
+  if (!elDate.value) {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    elDate.value = `${yyyy}-${mm}-${dd}`;
+  }
+  calcAndRender();
+}
 
-  editingId = id;
+// =====================
+// 管理者：CSV(Excel) / PDF
+// =====================
+function checkAdmin() {
+  if (adminPass.value !== ADMIN_PASS) {
+    alert("管理者パスワードが違います");
+    return false;
+  }
+  return true;
+}
 
-  document.getElementById("date").value = rec.date;
-  document.getElementById("place").value = rec.place;
-  document.getElementById("place").dispatchEvent(new Event("change"));
+function exportCSV() {
+  if (!checkAdmin()) return;
 
-  rec.detailsList.forEach(d => {
-    document.getElementById(`s${d.index}`).value = d.start;
-    document.getElementById(`e${d.index}`).value = d.end;
+  const records = loadRecords();
+  if (records.length === 0) {
+    alert("データがありません");
+    return;
+  }
+
+  // 列（5コマ分）
+  const headers = [
+    "勤務日","勤務地",
+    "1出勤","1退勤","1分",
+    "2出勤","2退勤","2分",
+    "3出勤","3退勤","3分",
+    "4出勤","4退勤","4分",
+    "5出勤","5退勤","5分",
+    "合計分","時給","時給分","手当","交通費","合計円"
+  ];
+
+  const rows = records.map(r => {
+    const s = r.slots || [];
+    const get = (i, k) => (s[i] && s[i][k] !== undefined) ? s[i][k] : "";
+    return [
+      r.date || "", r.place || "",
+      get(0,"start"), get(0,"end"), get(0,"minutes"),
+      get(1,"start"), get(1,"end"), get(1,"minutes"),
+      get(2,"start"), get(2,"end"), get(2,"minutes"),
+      get(3,"start"), get(3,"end"), get(3,"minutes"),
+      get(4,"start"), get(4,"end"), get(4,"minutes"),
+      r.totalMinutes ?? 0,
+      r.hourly ?? 0,
+      r.wageAmount ?? 0,
+      r.allowance ?? 0,
+      r.transport ?? 0,
+      r.grandTotal ?? 0,
+    ];
   });
 
-  rec.extraPerSlot.forEach((v, i) => {
-    document.getElementById(`extra${i + 1}`).value = v;
-  });
+  const csv = [headers, ...rows]
+    .map(line => line.map(v => `"${String(v).replace(/"/g,'""')}"`).join(","))
+    .join("\n");
 
-  document.getElementById("transport").value = rec.transport;
+  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
 
-  document.getElementById("result").textContent =
-    "編集モードです。「5コマを計算する」→「履歴に登録」で上書き保存されます。";
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `kintai_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+function exportPDF() {
+  if (!checkAdmin()) return;
+
+  const records = loadRecords();
+  if (records.length === 0) {
+    alert("データがありません");
+    return;
+  }
+
+  const htmlRows = records.map(r => {
+    const total = r.grandTotal ?? 0;
+    return `
+      <tr>
+        <td>${escapeHtml(r.date || "")}</td>
+        <td>${escapeHtml(r.place || "")}</td>
+        <td style="text-align:right;">${escapeHtml(String(total))}</td>
+      </tr>
+    `;
+  }).join("");
+
+  const w = window.open("", "_blank");
+  w.document.write(`
+    <!doctype html>
+    <html lang="ja"><head><meta charset="utf-8">
+      <title>勤怠一覧</title>
+      <style>
+        body{font-family: sans-serif; padding:16px;}
+        h1{font-size:18px; margin:0 0 10px;}
+        .muted{color:#666; font-size:12px;}
+        table{border-collapse:collapse; width:100%; font-size:12px; margin-top:10px;}
+        th,td{border:1px solid #999; padding:6px;}
+        th{background:#f2f2f2;}
+        button{margin: 10px 0; padding:8px 12px;}
+        @media print { button { display:none; } }
+      </style>
+    </head><body>
+      <h1>勤怠一覧</h1>
+      <div class="muted">保存キー：kintai_main_records / 印刷画面で「PDFに保存」を選んでください</div>
+      <button onclick="window.print()">印刷（PDF保存）</button>
+      <table>
+        <thead><tr><th>勤務日</th><th>勤務地</th><th>合計（円）</th></tr></thead>
+        <tbody>${htmlRows}</tbody>
+      </table>
+    </body></html>
+  `);
+  w.document.close();
+}
+
+// =====================
+// ユーティリティ
+// =====================
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#39;");
 }
